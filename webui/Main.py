@@ -27,16 +27,14 @@ from app.services import task as tm
 from app.utils import utils
 
 st.set_page_config(
-    page_title="MoneyPrinterTurbo",
+    page_title="clip-gen",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="auto",
     menu_items={
-        "Report a bug": "https://github.com/harry0703/MoneyPrinterTurbo/issues",
-        "About": "# MoneyPrinterTurbo\nSimply provide a topic or keyword for a video, and it will "
+        "About": "# clip-gen\nSimply provide a topic or keyword for a video, and it will "
         "automatically generate the video copy, video materials, video subtitles, "
         "and video background music before synthesizing a high-definition short "
-        "video.\n\nhttps://github.com/harry0703/MoneyPrinterTurbo",
     },
 )
 
@@ -74,7 +72,7 @@ locales = utils.load_locales(i18n_dir)
 title_col, lang_col = st.columns([3, 1])
 
 with title_col:
-    st.title(f"MoneyPrinterTurbo v{config.project_version}")
+    st.title(f"clip-gen v{config.project_version}")
 
 with lang_col:
     display_languages = []
@@ -237,7 +235,6 @@ if not config.app.get("hide_config", False):
                 "OneAPI",
                 "Cloudflare",
                 "ERNIE",
-                "Pollinations",
             ]
             saved_llm_provider = config.app.get("llm_provider", "OpenAI").lower()
             saved_llm_provider_index = 0
@@ -325,18 +322,6 @@ if not config.app.get("hide_config", False):
                             - **Base Url**: 留空
                             - **Model Name**: 比如 qwen-max，[点击查看模型列表](https://help.aliyun.com/zh/dashscope/developer-reference/model-introduction#3ef6d0bcf91wy)
                             """
-
-            if llm_provider == "g4f":
-                if not llm_model_name:
-                    llm_model_name = "gpt-3.5-turbo"
-                with llm_helper:
-                    tips = """
-                            ##### gpt4free 配置说明
-                            > [GitHub开源项目](https://github.com/xtekky/gpt4free)，可以免费使用GPT模型，但是**稳定性较差**
-                            - **API Key**: 随便填写，比如 123
-                            - **Base Url**: 留空
-                            - **Model Name**: 比如 gpt-3.5-turbo，[点击查看模型列表](https://github.com/xtekky/gpt4free/blob/main/g4f/models.py#L308)
-                            """
             if llm_provider == "azure":
                 with llm_helper:
                     tips = """
@@ -380,17 +365,6 @@ if not config.app.get("hide_config", False):
                             - **API Key**: [点击到官网申请](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
                             - **Secret Key**: [点击到官网申请](https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application)
                             - **Base Url**: 填写 **请求地址** [点击查看文档](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/jlil56u11#%E8%AF%B7%E6%B1%82%E8%AF%B4%E6%98%8E)
-                            """
-
-            if llm_provider == "pollinations":
-                if not llm_model_name:
-                    llm_model_name = "default"
-                with llm_helper:
-                    tips = """
-                            ##### Pollinations AI Configuration
-                            - **API Key**: Optional - Leave empty for public access
-                            - **Base Url**: Default is https://text.pollinations.ai/openai
-                            - **Model Name**: Use 'openai-fast' or specify a model name
                             """
 
             if tips and config.ui["language"] == "zh":
@@ -499,9 +473,7 @@ with left_panel:
         )
         params.video_language = video_languages[selected_index][1]
 
-        if st.button(
-            tr("Generate Video Script and Keywords"), key="auto_generate_script"
-        ):
+        if st.button(tr("Generate Video Script and Keywords"), key="auto_generate_script"):
             with st.spinner(tr("Generating Video Script and Keywords")):
                 script = llm.generate_script(
                     video_subject=params.video_subject, language=params.video_language
@@ -633,7 +605,6 @@ with middle_panel:
         tts_servers = [
             ("azure-tts-v1", "Azure TTS V1"),
             ("azure-tts-v2", "Azure TTS V2"),
-            ("siliconflow", "SiliconFlow TTS"),
         ]
 
         # 获取保存的TTS服务器，默认为v1
@@ -657,23 +628,19 @@ with middle_panel:
         # 根据选择的TTS服务器获取声音列表
         filtered_voices = []
 
-        if selected_tts_server == "siliconflow":
-            # 获取硅基流动的声音列表
-            filtered_voices = voice.get_siliconflow_voices()
-        else:
-            # 获取Azure的声音列表
-            all_voices = voice.get_all_azure_voices(filter_locals=None)
+        # 获取Azure的声音列表
+        all_voices = voice.get_all_azure_voices(filter_locals=None)
 
-            # 根据选择的TTS服务器筛选声音
-            for v in all_voices:
-                if selected_tts_server == "azure-tts-v2":
-                    # V2版本的声音名称中包含"v2"
-                    if "V2" in v:
-                        filtered_voices.append(v)
-                else:
-                    # V1版本的声音名称中不包含"v2"
-                    if "V2" not in v:
-                        filtered_voices.append(v)
+        # 根据选择的TTS服务器筛选声音
+        for v in all_voices:
+            if selected_tts_server == "azure-tts-v2":
+                # V2版本的声音名称中包含"v2"
+                if "V2" in v:
+                    filtered_voices.append(v)
+            else:
+                # V1版本的声音名称中不包含"v2"
+                if "V2" not in v:
+                    filtered_voices.append(v)
 
         friendly_names = {
             v: v.replace("Female", tr("Female"))
@@ -717,9 +684,7 @@ with middle_panel:
         else:
             # 如果没有声音可选，显示提示信息
             st.warning(
-                tr(
-                    "No voices available for the selected TTS server. Please select another server."
-                )
+                tr("No voices available for the selected TTS server. Please select another server.")
             )
             params.voice_name = ""
             config.ui["voice_name"] = ""
@@ -776,32 +741,6 @@ with middle_panel:
             )
             config.azure["speech_region"] = azure_speech_region
             config.azure["speech_key"] = azure_speech_key
-
-        # 当选择硅基流动时，显示API key输入框和说明信息
-        if selected_tts_server == "siliconflow" or (
-            voice_name and voice.is_siliconflow_voice(voice_name)
-        ):
-            saved_siliconflow_api_key = config.siliconflow.get("api_key", "")
-
-            siliconflow_api_key = st.text_input(
-                tr("SiliconFlow API Key"),
-                value=saved_siliconflow_api_key,
-                type="password",
-                key="siliconflow_api_key_input",
-            )
-
-            # 显示硅基流动的说明信息
-            st.info(
-                tr("SiliconFlow TTS Settings")
-                + ":\n"
-                + "- "
-                + tr("Speed: Range [0.25, 4.0], default is 1.0")
-                + "\n"
-                + "- "
-                + tr("Volume: Uses Speech Volume setting, default 1.0 maps to gain 0")
-            )
-
-            config.siliconflow["api_key"] = siliconflow_api_key
 
         params.voice_volume = st.selectbox(
             tr("Speech Volume"),

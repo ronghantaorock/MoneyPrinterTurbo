@@ -7,7 +7,7 @@ from loguru import logger
 
 from app.config import config
 from app.models import const
-from app.models.schema import VideoConcatMode, VideoParams
+from app.models.schema import VideoConcatMode, VideoParams, TaskVideoRequest
 from app.services import llm, material, subtitle, video, voice
 from app.services import state as sm
 from app.utils import utils
@@ -211,7 +211,7 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
     logger.info(f"start task: {task_id}, stop_at: {stop_at}")
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=5)
 
-    if type(params.video_concat_mode) is str:
+    if type(params) is TaskVideoRequest and type(params.video_concat_mode) is str:
         params.video_concat_mode = VideoConcatMode(params.video_concat_mode)
 
     # 1. Generate script

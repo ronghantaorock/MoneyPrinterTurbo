@@ -29,7 +29,7 @@ from app.models.schema import (
     VideoTransitionMode,
 )
 from app.services.utils import video_effects
-from app.utils import utils
+from app.services import utils
 
 class SubClippedVideoClip:
     def __init__(self, file_path, start_time=None, end_time=None, width=None, height=None, duration=None):

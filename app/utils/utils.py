@@ -14,15 +14,12 @@ from app.models import const
 urllib3.disable_warnings()
 
 
-def get_response(status: int, data: Any = None, message: str = ""):
-    obj = {
+def get_response(status: int = 0, data: Any = None, message: str = "OK"):
+    return {
         "status": status,
+        "message": message,
+        "data": data if data else {}
     }
-    if data:
-        obj["data"] = data
-    if message:
-        obj["message"] = message
-    return obj
 
 
 def to_json(obj):
@@ -53,7 +50,8 @@ def to_json(obj):
 
         # Serialize the processed object into a JSON string
         return json.dumps(serialized_obj, ensure_ascii=False, indent=4)
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error converting object to JSON: {str(e)}")
         return None
 
 

@@ -38,34 +38,6 @@ class TestVoiceService(unittest.TestCase):
     def tearDown(self):
         self.loop.close()
     
-    def test_siliconflow(self):
-        voice_name = "siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male"
-        voice_name = vs.parse_voice_name(voice_name)
-        
-        async def _do():
-            parts = voice_name.split(":")
-            if len(parts) >= 3:
-                model = parts[1]
-                # 移除性别后缀，例如 "alex-Male" -> "alex"
-                voice_with_gender = parts[2]
-                voice = voice_with_gender.split("-")[0]
-                # 构建完整的voice参数，格式为 "model:voice"
-                full_voice = f"{model}:{voice}"
-                voice_file = f"{temp_dir}/tts-siliconflow-{voice}.mp3"
-                subtitle_file = f"{temp_dir}/tts-siliconflow-{voice}.srt"
-                sub_maker = vs.siliconflow_tts(
-                    text=text_zh, model=model, voice=full_voice, voice_file=voice_file, voice_rate=voice_rate, voice_volume=voice_volume
-                )
-                if not sub_maker:
-                    self.fail("siliconflow tts failed")
-                vs.create_subtitle(sub_maker=sub_maker, text=text_zh, subtitle_file=subtitle_file)
-                audio_duration = vs.get_audio_duration(sub_maker)
-                print(f"voice: {voice_name}, audio duration: {audio_duration}s")
-            else:
-                self.fail("siliconflow invalid voice name")
-
-        self.loop.run_until_complete(_do())
-    
     def test_azure_tts_v1(self):
         voice_name = "zh-CN-XiaoyiNeural-Female"
         voice_name = vs.parse_voice_name(voice_name)

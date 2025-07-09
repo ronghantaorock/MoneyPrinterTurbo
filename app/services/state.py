@@ -5,7 +5,7 @@ from app.config import config
 from app.models import const
 
 
-# Base class for state management
+# 定义状态机的抽象类
 class BaseState(ABC):
     @abstractmethod
     def update_task(self, task_id: str, state: int, progress: int = 0, **kwargs):
@@ -94,9 +94,7 @@ class RedisState(BaseState):
         progress: int = 0,
         **kwargs,
     ):
-        progress = int(progress)
-        if progress > 100:
-            progress = 100
+        progress = int(progress) if int(progress) <= 100 else 100
 
         fields = {
             "task_id": task_id,

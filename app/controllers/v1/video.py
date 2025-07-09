@@ -9,7 +9,6 @@ from fastapi.params import File
 from fastapi.responses import FileResponse, StreamingResponse
 from loguru import logger
 
-from app.config import config
 from app.controllers import base
 from app.controllers.manager.memory_manager import InMemoryTaskManager
 from app.controllers.manager.redis_manager import RedisTaskManager
@@ -29,6 +28,7 @@ from app.models.schema import (
 from app.services import state as sm
 from app.services import task as tm
 from app.utils import utils
+from app.config import config
 
 # 认证依赖项
 # router = new_router(dependencies=[Depends(base.verify_token)])
@@ -52,9 +52,7 @@ else:
 
 
 @router.post("/videos", response_model=TaskResponse, summary="Generate a short video")
-def create_video(
-    background_tasks: BackgroundTasks, request: Request, body: TaskVideoRequest
-):
+def create_video(background_tasks: BackgroundTasks, request: Request, body: TaskVideoRequest):
     return create_task(request, body, stop_at="video")
 
 
@@ -66,16 +64,14 @@ def create_subtitle(
 
 
 @router.post("/audio", response_model=TaskResponse, summary="Generate audio only")
-def create_audio(
-    background_tasks: BackgroundTasks, request: Request, body: AudioRequest
-):
+def create_audio(background_tasks: BackgroundTasks, request: Request, body: AudioRequest):
     return create_task(request, body, stop_at="audio")
 
 
 def create_task(
     request: Request,
     body: Union[TaskVideoRequest, SubtitleRequest, AudioRequest],
-    stop_at: str,
+    stop_at: str
 ):
     task_id = utils.get_uuid()
     request_id = base.get_task_id(request)
@@ -179,9 +175,7 @@ def delete_video(request: Request, task_id: str = Path(..., description="Task ID
     )
 
 
-@router.get(
-    "/musics", response_model=BgmRetrieveResponse, summary="Retrieve local BGM files"
-)
+@router.get("/musics", response_model=BgmRetrieveResponse, summary="Retrieve local BGM files")
 def get_bgm_list(request: Request):
     suffix = "*.mp3"
     song_dir = utils.song_dir()

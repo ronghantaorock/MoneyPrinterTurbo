@@ -1,6 +1,7 @@
 """Application implementation - ASGI."""
 
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -8,11 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
+from starlette.types import Lifespan, AppType
 
-from app.config import config
 from app.models.exception import HttpException
 from app.router import root_api_router
 from app.utils import utils
+from app.config import config
 
 
 def exception_handler(request: Request, e: HttpException):
@@ -31,7 +33,7 @@ def validation_exception_handler(request: Request, e: RequestValidationError):
     )
 
 
-def get_application() -> FastAPI:
+def get_application(lifespan: Lifespan[AppType]) -> FastAPI:
     """Initialize FastAPI application.
 
     Returns:
@@ -43,14 +45,22 @@ def get_application() -> FastAPI:
         description=config.project_description,
         version=config.project_version,
         debug=False,
+        lifespan=lifespan
     )
     instance.include_router(root_api_router)
     instance.add_exception_handler(HttpException, exception_handler)
     instance.add_exception_handler(RequestValidationError, validation_exception_handler)
     return instance
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("startup event")
+    try:
+        yield
+    finally:
+        logger.info("shutdown event")
 
-app = get_application()
+app = get_application(lifespan)
 
 # Configures the CORS middleware for the FastAPI app
 cors_allowed_origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "")
@@ -71,12 +81,3 @@ app.mount(
 public_dir = utils.public_dir()
 app.mount("/", StaticFiles(directory=public_dir, html=True), name="")
 
-
-@app.on_event("shutdown")
-def shutdown_event():
-    logger.info("shutdown event")
-
-
-@app.on_event("startup")
-def startup_event():
-    logger.info("startup event")
