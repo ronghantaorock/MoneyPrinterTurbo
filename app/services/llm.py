@@ -218,9 +218,7 @@ def _generate_response(prompt: str) -> str:
                 base_url=base_url,
             )
 
-        response = client.chat.completions.create(
-            model=model_name, messages=[{"role": "user", "content": prompt}]
-        )
+        response = client.chat.completions.create(model=model_name, messages=[{"role": "user", "content": prompt}])
         if response:
             if isinstance(response, ChatCompletion):
                 content = response.choices[0].message.content
@@ -275,8 +273,8 @@ Generate a script for a video, depending on the subject of the video.
         response = response.replace("#", "")
 
         # Remove markdown syntax
-        response = re.sub(r"\[.*\]", "", response)
-        response = re.sub(r"\(.*\)", "", response)
+        response = re.sub(r"\[.*?\]", "", response)
+        response = re.sub(r"\(.*?\)", "", response)
 
         # Split the script into paragraphs
         paragraphs = response.split("\n\n")
